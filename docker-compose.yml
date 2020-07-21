@@ -1,0 +1,45 @@
+version: '3.2'
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+    - 9090:9090
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+    - ./config/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 4000:3000
+    restart: unless-stopped
+    links:
+      - prometheus:prometheus
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=MYPASSWORT
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=myrul.com
+      - GF_SMTP_ENABLED=false
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+  prometheus_exporter:
+    build: .
+    command: bundle exec prometheus_exporter
+    ports:
+      - "9394:9394"
+  rails:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/myapp
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - prometheus_exporter
