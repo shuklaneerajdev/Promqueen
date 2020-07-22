@@ -30,7 +30,11 @@ services:
       POSTGRES_PASSWORD: password
   prometheus_exporter:
     build: .
-    command: bundle exec prometheus_exporter
+    volumes:
+      - .:/myapp    
+    command: bundle exec prometheus_exporter -v
+    depends_on:
+      - prometheus
     ports:
       - "9394:9394"
   rails:
