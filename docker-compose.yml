@@ -31,7 +31,7 @@ services:
   prometheus_exporter:
     build: .
     volumes:
-      - .:/myapp    
+      - .:/myapp
     command: bundle exec prometheus_exporter -v
     depends_on:
       - prometheus
@@ -47,3 +47,5 @@ services:
     depends_on:
       - db
       - prometheus_exporter
+    environment:
+      - PROMETHEUS_EXPORTER_HOST=prometheus_exporter
